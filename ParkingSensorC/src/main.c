@@ -10,16 +10,7 @@
 
 #define CALC_USART_UBRR(BAUD) (F_CPU / 16 / (BAUD) - 1)
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-
-/*
-* \brief Convert a float to a string
-*/
-char *float_to_string(float num) {
-    // only 2 decimal places
-    static char str[10];
-    sprintf(str, "%.2f", num);
-    return str;
-}
+#define DISTANCE_THRESHOLD(distance1 , distance2) distance1 < 50 && distance2 < 50
 
 int main()
 {
@@ -59,10 +50,8 @@ int main()
 
         distance = ultrasonic_calculate_distance();
         if(turn == 0) {
-            old_distance1 = distance1;
             distance1 = distance;
         } else {
-            old_distance2 = distance2;
             distance2 = distance;
         }
         if(distance <= 50) { // display
@@ -70,18 +59,26 @@ int main()
             lcd_write("Distance: \0");
             lcd_write_number(distance);
             lcd_write("cm      \0");
-            if(turn)  ping_buzzer(100);
+
         } else {
             lcd_clear_line(turn);
         }
 
         set_color(MIN(distance1, distance2));
+        if(active) if(MIN(distance1, distance2) < 50) ping_buzzer(100);// beep only if it is active
 
-        // if(active == 0) {
-        //     if(old_distance1 != distance1 && old_distance2 != distance2) {
-        //         active = 1;
-        //     }
-        // }
+        if(active == 0) { // check if vehicle moved
+            if(DISTANCE_THRESHOLD(distance1, distance2))
+                if(old_distance1 != distance1 && old_distance2 != distance2) {
+                    active = 1;
+                }
+        }
+
+        if(turn) {
+            old_distance1 = distance1;   
+        } else {
+            old_distance2 = distance2;
+        }
 
         turn = ++turn % 2;
         _delay_ms(100);

@@ -26,14 +26,6 @@ void init_button(void) {
 }
 
 /*
- * \brief Check if button is pressed
- */
-uint8_t is_button_pressed(void) {
-    // Check if button is pressed
-    return !(PIND & _BV(BUTTON));
-}
-
-/*
  * \brief Initialize intteruption
  */
 void init_intteruption(void) {
